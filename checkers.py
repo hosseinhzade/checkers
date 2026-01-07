@@ -78,5 +78,31 @@ class Board:
         elif piece == WHITE and r_end == 0:
             piece = WHITE_KING
         self.board[r_end][c_end] = piece
+        
+    def get_legal_moves(self, player):
+        moves = []
+        max_captures = 0
+        for r in range(BOARD_SIZE):
+            for c in range(BOARD_SIZE):
+                piece = self.board[r][c]
+                if piece == EMPTY or piece == -1:
+                    continue
+                if player == BLACK_PLAYER and piece in [BLACK, BLACK_KING]:
+                    piece_moves = self._get_piece_moves(r, c, piece)
+                elif player == WHITE_PLAYER and piece in [WHITE, WHITE_KING]:
+                    piece_moves = self._get_piece_moves(r, c, piece)
+                else:
+                    continue
+                # اجباری بودن خوردن: بیشترین captures
+                for m in piece_moves:
+                    captures = max(len(m)-1,0)
+                    if captures > max_captures:
+                        max_captures = captures
+                        moves = [m]
+                    elif captures == max_captures:
+                        moves.append(m)
+        return moves
+
+
 
 
