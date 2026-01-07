@@ -102,6 +102,41 @@ class Board:
                     elif captures == max_captures:
                         moves.append(m)
         return moves
+    def _get_piece_moves(self, r, c, piece):
+        # generate all capture moves first
+        captures = []
+        self._dfs_capture(r, c, piece, [(r,c)], captures, set())
+        if captures:
+            return captures  # اگر capture موجود است، اجباری است
+        # اگر capture نیست، حرکات ساده
+        moves = []
+        directions = DIR_KING if piece in [BLACK_KING, WHITE_KING] else (DIR_BLACK if piece in [BLACK] else DIR_WHITE)
+        for dr, dc in directions:
+            r1, c1 = r+dr, c+dc
+            if 0 <= r1 < BOARD_SIZE and 0 <= c1 < BOARD_SIZE and self.board[r1][c1] == EMPTY:
+                moves.append([(r,c),(r1,c1)])
+        return moves
+
+    def _dfs_capture(self, r, c, piece, path, moves, visited):
+        directions = DIR_KING if piece in [BLACK_KING, WHITE_KING] else (DIR_BLACK if piece in [BLACK] else DIR_WHITE)
+        any_capture = False
+        for dr, dc in directions:
+            r1, c1 = r+dr, c+dc
+            r2, c2 = r+2*dr, c+2*dc
+            if 0 <= r2 < BOARD_SIZE and 0 <= c2 < BOARD_SIZE and self.board[r2][c2] == EMPTY:
+                target = self.board[r1][c1]
+                if piece in [BLACK, BLACK_KING]:
+                    enemy = [WHITE, WHITE_KING]
+                else:
+                    enemy = [BLACK, BLACK_KING]
+                if target in enemy and ((r2,c2) not in visited):
+                    visited.add((r2,c2))
+                    self._dfs_capture(r2, c2, piece, path+[(r2,c2)], moves, visited)
+                    visited.remove((r2,c2))
+                    any_capture = True
+        if not any_capture and len(path) > 1:
+            moves.append(path)
+
 
 
 
