@@ -136,6 +136,39 @@ class Board:
                     any_capture = True
         if not any_capture and len(path) > 1:
             moves.append(path)
+    def is_terminal(self):
+        black_pieces = sum(self.board[r][c] in [BLACK, BLACK_KING] for r in range(BOARD_SIZE) for c in range(BOARD_SIZE))
+        white_pieces = sum(self.board[r][c] in [WHITE, WHITE_KING] for r in range(BOARD_SIZE) for c in range(BOARD_SIZE))
+        if black_pieces == 0 or white_pieces == 0:
+            return True
+        if not self.get_legal_moves(BLACK_PLAYER) and not self.get_legal_moves(WHITE_PLAYER):
+            return True
+        return False
+
+# Heuristics
+def evaluate_simple(board):
+    black = sum(board.board[r][c] in [BLACK, BLACK_KING] for r in range(BOARD_SIZE) for c in range(BOARD_SIZE))
+    white = sum(board.board[r][c] in [WHITE, WHITE_KING] for r in range(BOARD_SIZE) for c in range(BOARD_SIZE))
+    black_k = sum(board.board[r][c] == BLACK_KING for r in range(BOARD_SIZE) for c in range(BOARD_SIZE))
+    white_k = sum(board.board[r][c] == WHITE_KING for r in range(BOARD_SIZE) for c in range(BOARD_SIZE))
+    return (black + 3*black_k) - (white + 3*white_k)
+
+def evaluate_advanced(board):
+    score = 0
+    for r in range(BOARD_SIZE):
+        for c in range(BOARD_SIZE):
+            p = board.board[r][c]
+            if p == BLACK:
+                score += 1 + r*0.1
+            elif p == WHITE:
+                score -= 1 + (5-r)*0.1
+            elif p == BLACK_KING:
+                score += 3
+            elif p == WHITE_KING:
+                score -= 3
+    score += 0.1*(len(board.get_legal_moves(BLACK_PLAYER)) - len(board.get_legal_moves(WHITE_PLAYER)))
+    return score
+
 
 
 
