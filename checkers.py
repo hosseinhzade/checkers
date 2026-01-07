@@ -168,6 +168,107 @@ def evaluate_advanced(board):
                 score -= 3
     score += 0.1*(len(board.get_legal_moves(BLACK_PLAYER)) - len(board.get_legal_moves(WHITE_PLAYER)))
     return score
+# Minimax + Alpha-Beta
+def minimax(board, depth, maximizing, alpha=float('-inf'), beta=float('inf')):
+    if depth == 0 or board.is_terminal():
+        return evaluate_advanced(board), None
+    player = BLACK_PLAYER if maximizing else WHITE_PLAYER
+    moves = board.get_legal_moves(player)
+    if not moves:
+        return evaluate_advanced(board), None
+    best_move = None
+    if maximizing:
+        max_eval = float('-inf')
+        for m in moves:
+            new_board = board.copy()
+            new_board.apply_move(m)
+            eval_score, _ = minimax(new_board, depth-1, False, alpha, beta)
+            if eval_score > max_eval:
+                max_eval = eval_score
+                best_move = m
+            alpha = max(alpha, max_eval)
+            if beta <= alpha:
+                break
+        return max_eval, best_move
+    else:
+        min_eval = float('inf')
+        for m in moves:
+            new_board = board.copy()
+            new_board.apply_move(m)
+            eval_score, _ = minimax(new_board, depth-1, True, alpha, beta)
+            if eval_score < min_eval:
+                min_eval = eval_score
+                best_move = m
+            beta = min(beta, min_eval)
+            if beta <= alpha:
+                break
+        return min_eval, best_move
+# Agents
+class HumanAgent:
+    def __init__(self, player=BLACK_PLAYER):
+        self.player = player
+    def get_move(self, board):
+        moves = board.get_legal_moves(self.player)
+        if not moves:
+            return None
+        for i, m in enumerate(moves):
+            print(f"{i}: {m}")
+        choice = int(input("Choose your move: "))
+        return moves[choice]
+
+class AI_Agent:
+    def __init__(self, depth=3, maximizing=True):
+        self.depth = depth
+        self.maximizing = maximizing
+    def get_move(self, board):
+        _, move = minimax(board, self.depth, self.maximizing)
+        return move
+
+# Game loops
+def play_human_vs_agent():
+    board = Board()
+    human = HumanAgent(BLACK_PLAYER)
+    ai = AI_Agent(depth=3, maximizing=False)
+    turn = BLACK_PLAYER
+    while not board.is_terminal():
+        board.print_board()
+        if turn == BLACK_PLAYER:
+            move = human.get_move(board)
+        else:
+            move = ai.get_move(board)
+        if move is None:
+            print(f"{turn} has no moves!")
+            break
+        board.apply_move(move)
+        turn = WHITE_PLAYER if turn == BLACK_PLAYER else BLACK_PLAYER
+    board.print_board()
+    print("Game Over!")
+
+def play_agent_vs_agent():
+    board = Board()
+    ai1 = AI_Agent(depth=3, maximizing=True)
+    ai2 = AI_Agent(depth=3, maximizing=False)
+    turn = BLACK_PLAYER
+    while not board.is_terminal():
+        board.print_board()
+        if turn == BLACK_PLAYER:
+            move = ai1.get_move(board)
+        else:
+            move = ai2.get_move(board)
+        if move is None:
+            break
+        board.apply_move(move)
+        turn = WHITE_PLAYER if turn == BLACK_PLAYER else BLACK_PLAYER
+    board.print_board()
+    print("Game Over!")
+
+# Main
+if __name__ == "__main__":
+    mode = input("Select mode: 1. Human vs Agent  2. Agent vs Agent\n")
+    if mode == "1":
+        play_human_vs_agent()
+    elif mode == "2":
+        play_agent_vs_agent()
 
 
 
